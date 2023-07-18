@@ -152,6 +152,7 @@ def Hello_world():
     response_data=jsonify(json_response)
     return response_data
 
+#Masukan Teks
 @swag_from("docs/lstm.yml",methods=['POST'])
 @app.route("/lstm",methods=['POST'])
 def dnn_lstm(model=model_deep_learning_lstm_h5):
@@ -175,6 +176,7 @@ def dnn_lstm(model=model_deep_learning_lstm_h5):
   response_data = jsonify(json_response)
   return response_data
 
+#Masukan Teks
 @swag_from("docs/cnn.yml",methods=['POST'])
 @app.route("/cnn",methods=['POST'])
 def nn_mlpc(model=model1):
@@ -191,6 +193,61 @@ def nn_mlpc(model=model1):
 
     response_data = jsonify(json_response)
     return response_data
+
+#Masukan File CSV
+@swag_from("docs/lstm_csv.yml",methods=['POST'])
+@app.route("/lstm_csv",methods=['POST'])
+def dnn_lstm_csv(model=model_deep_learning_lstm_h5):
+    max_features = 100000
+    sentiment = ['negative','neutral','positive']
+    file = request.files.getlist('file')[0]
+    df = pd.read_csv(file,encoding='latin1')
+    df = df[:5]
+    df['Tweet'] = df['Tweet'].apply(preprocess_semua_kata)
+    sentimen = []
+    tokenizer = Tokenizer(num_words=max_features,split=' ',lower=None)
+    for i in df['Tweet']:
+        tokenizer.fit_on_texts(i)
+        kata_token = tokenizer.texts_to_sequences(i)
+        pad_kata = pad_sequences(kata_token)
+        prediksi = model.predict(pad_kata)
+        polarity = np.argmax(prediksi[0])
+        jenis_sentimen = sentiment[polarity]
+        sentimen.append(jenis_sentimen)
+    
+    json_response={
+        'status_code':200,
+        'description':'Hasil Analisis Sentimen Dengan MLPClassifier',
+        'jenis_sentimen':sentimen
+    }
+    response_data = jsonify(json_response)
+    return response_data
+
+@swag_from("docs/cnn_csv.yml",methods=['POST'])
+@app.route("/cnn_csv",methods=['POST'])
+#Masukan File CSV
+def nn_mlpc_csv(model=model1):
+    file = request.files.getlist('file')[0]
+    df = pd.read_csv(file,encoding='latin1')
+    df = df[:5]
+    df['Tweet'] = df['Tweet'].apply(preprocess_semua_kata)
+    sentimen = []
+    for i in df['Tweet']:
+        text_vector = vectorizer.transform([i])
+        sentiment_pred = model.predict(text_vector)
+        sentiment_pred = sentiment_pred[0]
+        sentimen.append(sentiment_pred)
+    
+    json_response={
+        'status_code':200,
+        'description':'Hasil Analisis Sentimen Dengan MLPClassifier',
+        'jenis_sentimen':sentimen
+    }
+    response_data = jsonify(json_response)
+    return response_data
+
+
+
 
 
 

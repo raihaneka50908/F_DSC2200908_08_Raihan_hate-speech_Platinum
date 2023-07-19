@@ -1,0 +1,2 @@
+Boleh Menggunakan TFIDF/Back Of Word
+Machine Learning (Neural Network) = MLPClassifier
